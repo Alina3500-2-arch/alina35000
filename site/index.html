@@ -7,7 +7,7 @@
 <meta name="description" content="Разбираем путь клиента целиком — от первого клика до подписанного договора — и собираем заново так, чтобы им можно было управлять цифрами. Два проекта в квартал." />
 <meta property="og:type" content="website" />
 <meta property="og:title" content="Аполлонов и Шигапова" />
-<meta property="og:description" content="Восстанавливаем управляемость продаж в малом бизнесе. Два проекта в квартал." />
+<meta property="og:description" content="Пересобираем продажи в малом бизнесе. От первого клика до подписанного договора. Два проекта в квартал." />
 <meta property="og:image" content="alina.jpg" />
 <meta property="og:locale" content="ru_RU" />
 <style>
@@ -59,6 +59,7 @@
   }
   .bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
   .brand { font-family: var(--serif); font-size: 19px; letter-spacing: .01em; }
+  .tagline { font-size: 13px; color: var(--muted); margin-top: 2px; }
   .place { font-size: 14px; color: var(--muted); }
 
   /* Экран 1 */
@@ -229,13 +230,22 @@
     thead th:first-child { width: 190px; }
     .price td, .price th { font-size: 16px; }
   }
+
+  @media (max-width: 480px) {
+    .brand { font-size: 17px; }
+    .tagline { font-size: 12px; }
+    .place { display: none; } /* город остаётся в подвале */
+  }
 </style>
 </head>
 <body>
 
 <header>
   <div class="wrap bar">
-    <div class="brand">Аполлонов&nbsp;и&nbsp;Шигапова</div>
+    <div>
+      <div class="brand">Аполлонов&nbsp;и&nbsp;Шигапова</div>
+      <div class="tagline">Пересобираем продажи в малом бизнесе</div>
+    </div>
     <div class="place">Казань</div>
   </div>
 </header>
@@ -525,7 +535,11 @@
 
 <footer>
   <div class="wrap foot-row">
-    <div>Аполлонов и Шигапова · Казань</div>
+    <div>
+      Аполлонов и Шигапова · Казань<br />
+      <!-- Подставить реквизиты ИП Аполлонова: полное имя, ИНН, ОГРНИП -->
+      Исполнитель по договорам — ИП Аполлонов А. · ИНН и ОГРНИП подставить
+    </div>
     <div><a href="privacy.html">Политика обработки персональных данных</a></div>
   </div>
 </footer>
