@@ -8,15 +8,15 @@
 import { writeFileSync, readFileSync } from 'node:fs';
 
 const PACKAGES = [
-  { id: 's', name: 'Старт',    price: '30 000 ₽', month: '12 000 ₽/мес',
-    monthNote: 'ведение рекламы после запуска', prepay: '15 000 ₽', term: '7 рабочих дней',
+  { id: 's', name: 'Старт', site: '30 000 ₽', month: '12 000 ₽/мес',
+    total: '42 000 ₽', prepay: '21 000 ₽', term: '7 рабочих дней',
     pitch: 'Базовый минимум, который нужен в любом случае: услуги, мастера, цены, запись.' },
-  { id: 'o', name: 'Оптимум',  price: '38 000 ₽', month: '12 000 ₽/мес',
-    monthNote: 'ведение рекламы после запуска', prepay: '19 000 ₽', term: '10 рабочих дней',
+  { id: 'o', name: 'Оптимум', site: '38 000 ₽', month: '12 000 ₽/мес',
+    total: '50 000 ₽', prepay: '25 000 ₽', term: '10 рабочих дней',
     pitch: 'Полностью покрывает структуру, которую вы согласовывали раньше — все двенадцать блоков вашего списка на месте.',
     pick: true },
-  { id: 'k', name: 'Комплекс', price: '48 000 ₽', month: '12 000 ₽/мес',
-    monthNote: 'ведение рекламы после запуска', prepay: '24 000 ₽', term: '15 рабочих дней',
+  { id: 'k', name: 'Комплекс', site: '48 000 ₽', month: '12 000 ₽/мес',
+    total: '60 000 ₽', prepay: '30 000 ₽', term: '15 рабочих дней',
     pitch: 'То же плюс отдельные страницы под каждое направление — под рекламу.' },
 ];
 
@@ -94,16 +94,18 @@ function pkgSection(p) {
   return `
 <section class="pkg${p.pick ? ' pick' : ''}">
   <div class="pkg-head">
-    <div>
+    <div class="pkg-left">
       ${p.pick ? '<div class="badge">Рекомендуем</div>' : ''}
       <h2>${p.name}</h2>
-      <p class="small muted" style="max-width:420px">${p.pitch}</p>
+      <p class="small muted" style="max-width:400px">${p.pitch}</p>
+      <p class="small muted" style="margin:10px 0 0">${n} экранов · ${p.term}</p>
     </div>
     <div class="pkg-price">
-      <div class="pp">${p.price}</div>
-      <div class="pm">+ ${p.month}</div>
-      <div class="pn">${p.monthNote}</div>
-      <div class="pn">${n} экранов · ${p.term}</div>
+      <div class="prow2"><span>Сайт</span><b>${p.site}</b></div>
+      <div class="prow2"><span>Ведение рекламы</span><b>${p.month}</b></div>
+      <div class="ptotal"><span>Итого к старту</span><b>${p.total}</b></div>
+      <div class="pnote">сайт и первый месяц рекламы</div>
+      <div class="prow2 ppre"><span>Предоплата 50%</span><b>${p.prepay}</b></div>
     </div>
   </div>
   <div class="screens">${screens(p.id)}</div>
@@ -149,6 +151,7 @@ color:var(--copper-lt);text-align:center;margin-bottom:auto}
 .rule::after{content:"";position:absolute;left:50%;top:-3px;width:1px;height:7px;background:var(--copper);transform:translateX(-50%)}
 .cov-sub{font-size:15px;letter-spacing:.16em;color:var(--copper-lt)}
 .cov-by{text-align:center;font-family:var(--serif);font-size:16px;letter-spacing:.08em;color:#cfc6b6;margin-top:auto}
+.mark{display:block;width:60px;height:60px;margin:16px auto 0}
 .cov-meta{text-align:center;font-size:11.5px;letter-spacing:.1em;color:#8e8676;margin-top:12px}
 
 /* ===== Полосы ===== */
@@ -192,6 +195,18 @@ font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;padding:4px 10px;m
 .pp{font-family:var(--serif);font-size:34px;line-height:1}
 .pm{font-size:13px;color:var(--copper);margin-top:6px;font-weight:600}
 .pn{font-size:11px;color:var(--muted);line-height:1.45}
+.pkg-left{flex:1}
+.pkg-price{min-width:250px}
+.prow2{display:flex;justify-content:space-between;gap:16px;font-size:13px;padding:5px 0}
+.prow2 b{font-weight:600}
+.ptotal{display:flex;justify-content:space-between;gap:16px;align-items:baseline;
+margin-top:8px;padding-top:10px;border-top:1px solid var(--copper)}
+.ptotal span{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--copper)}
+.ptotal b{font-family:var(--serif);font-size:30px;font-weight:400;line-height:1}
+.pnote{font-size:10.5px;color:var(--muted);text-align:right;margin-top:2px}
+.ppre{margin-top:8px;padding-top:8px;border-top:1px solid var(--hair);color:var(--muted)}
+.pkg.pick .ptotal b,.pkg.pick .prow2 b{color:#efe8db}
+.pkg.pick .prow2,.pkg.pick .pnote,.pkg.pick .ppre{color:#b3ab9b}
 
 .screens{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .screen{border:1px solid var(--hair);background:var(--paper);padding:12px}
@@ -234,7 +249,8 @@ font-size:10.5px;color:#a49b8a;min-height:74px;letter-spacing:.08em}
 .fld{height:13px;background:#fff;border:1px solid var(--wire);margin-bottom:6px}
 .ablab{font-size:9.5px;color:var(--copper);margin-bottom:5px;letter-spacing:.1em}
 
-table{border-collapse:collapse;width:100%;margin:10px 0 14px}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:10px 0 14px}
+table{border-collapse:collapse;width:100%;margin:0}
 th,td{border-bottom:1px solid var(--hair);padding:11px 12px;font-size:13.5px;text-align:left}
 th{background:transparent;font-weight:600;font-size:11px;letter-spacing:.14em;
 text-transform:uppercase;color:var(--copper);border-bottom:1px solid var(--copper)}
@@ -260,7 +276,9 @@ h1{font-size:26px}h2{font-size:22px}
 .fact:nth-child(3){padding-left:0;border-left:0}
 .fact b{font-size:32px}
 .screens{grid-template-columns:1fr}
-.pkg-head{flex-direction:column}.pkg-price{text-align:left}
+.pkg-head{flex-direction:column}.pkg-price{min-width:0;width:100%}
+th,td{padding:9px 10px;font-size:12.5px}
+.tw table{min-width:430px}
 }
 @media print{
 @page{size:A4;margin:0}
@@ -282,7 +300,20 @@ h2{page-break-after:avoid}
     <div class="rule"></div>
     <div class="cov-sub">Сайт с онлайн-записью</div>
   </div>
-  <div class="cov-by">Аполлонов и Шигапова</div>
+  <div class="cov-by">Аполлонов и Шигапова
+    <svg class="mark" viewBox="0 0 200 200" role="img" aria-label="Аполлонов и Шигапова">
+      <circle cx="100" cy="100" r="97" fill="#16130f"/>
+      <path d="M100 14 A86 86 0 0 0 100 186" fill="none" stroke="#efe8db" stroke-width="11"/>
+      <path d="M100 14 A86 86 0 0 1 100 186" fill="none" stroke="#b0733a" stroke-width="11"/>
+      <line x1="100" y1="14" x2="100" y2="186" stroke="#efe8db" stroke-width="11"/>
+      <line x1="100" y1="26" x2="43" y2="163" stroke="#efe8db" stroke-width="11"/>
+      <line x1="60" y1="122" x2="100" y2="122" stroke="#efe8db" stroke-width="11"/>
+      <line x1="126" y1="96" x2="126" y2="170" stroke="#b0733a" stroke-width="11"/>
+      <line x1="152" y1="96" x2="152" y2="170" stroke="#b0733a" stroke-width="11"/>
+      <line x1="176" y1="96" x2="176" y2="163" stroke="#b0733a" stroke-width="11"/>
+      <line x1="120" y1="165" x2="176" y2="165" stroke="#b0733a" stroke-width="11"/>
+    </svg>
+  </div>
   <div class="cov-meta">Раменское · 2 августа 2026</div>
 </div>
 
@@ -396,10 +427,10 @@ ${PACKAGES.map(pkgSection).join('\n')}
   <p>Абонентской платы за сайт нет. Первые <b>14 дней после сдачи правим бесплатно</b> —
   это время, чтобы всё вычитать и досогласовать. Дальше — только когда что-то реально нужно
   поменять, по этому прайсу. Чтобы вы заранее знали цифры и не гадали.</p>
-  <table>
+  <div class="tw"><table>
     <tr><th>Работа</th><th style="width:150px">Стоимость</th></tr>
     ${EDITS.map(([w, p]) => `<tr><td>${w}</td><td class="c">${p}</td></tr>`).join('\n    ')}
-  </table>
+  </table></div>
   <p class="small muted">Срочная правка в течение суток — плюс 50% к стоимости. Обычный срок —
   до трёх рабочих дней. Опечатку или неверный телефон исправляем бесплатно и сразу,
   это не «правка».</p>
@@ -408,10 +439,10 @@ ${PACKAGES.map(pkgSection).join('\n')}
 <section>
   <div class="eyebrow">Сроки и оплата</div>
   <h2>Как идёт работа</h2>
-  <table>
-    <tr><th>Вариант</th><th>Экранов</th><th>Срок</th><th>Предоплата 50%</th></tr>
-    ${PACKAGES.map(p => `<tr><td>${p.name}</td><td class="c">${BLOCKS.filter(b => b.p.includes(p.id)).length}</td><td class="c">${p.term}</td><td class="c">${p.prepay}</td></tr>`).join('\n    ')}
-  </table>
+  <div class="tw"><table>
+    <tr><th>Вариант</th><th>Экранов</th><th>Срок</th><th>Итого к старту</th><th>Предоплата</th></tr>
+    ${PACKAGES.map(p => `<tr><td>${p.name}</td><td class="c">${BLOCKS.filter(b => b.p.includes(p.id)).length}</td><td class="c">${p.term}</td><td class="c">${p.total}</td><td class="c">${p.prepay}</td></tr>`).join('\n    ')}
+  </table></div>
   <ol class="steps">
     <li><div><h3>Согласуем структуру и тексты</h3><p class="small muted">Правки на этом этапе
     бесплатны и быстры — менять порядок экранов, пока ничего не собрано, легко.</p></div></li>
@@ -438,6 +469,21 @@ ${PACKAGES.map(pkgSection).join('\n')}
   а не отдельно от неё.</p>
   <p class="small muted">Мы берём ограниченное число проектов одновременно, поэтому работаем
   глубоко и не пропадаем. Ближайший свободный старт — с 11 августа.</p>
+</section>
+
+<section>
+  <div class="eyebrow">Предложение к старту</div>
+  <h2>Если начинаем на этой неделе</h2>
+  <p>Мы придерживаем ближайший свободный слот до <b>9 августа</b>. Если предоплата поступит
+  до этой даты, добавляем к работе две вещи сверх пакета:</p>
+  <div class="callout">
+    <p><b>Три бесплатных обращения на правки в течение года.</b> Поменять цены, текст,
+    контакты, добавить мастера — по прайсу это 4 500 ₽.</p>
+    <p><b>Плановое обновление сайта через полгода в подарок.</b> Обновим акции, прайс,
+    добавим новые работы и фотографии — по прайсу 8 000 ₽.</p>
+    <p style="margin-top:14px"><b>Всего 12 500 ₽ работ сверх пакета.</b> Дальше слот уходит
+    следующему проекту, а условия остаются обычными.</p>
+  </div>
 </section>
 
 <section>
