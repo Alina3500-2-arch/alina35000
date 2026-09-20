@@ -121,7 +121,7 @@
       <div class="panel">
         <h2>Подписи</h2>
         <div id="texts"></div>
-        <div class="row" style="margin-top:8px"><button id="addText">+ Подпись</button></div>
+        <div class="row" style="margin-top:8px"><button id="addText">+ Реплика</button><button id="addHeader">+ Шапка</button><button id="addBrand">+ Бренд</button><button id="addTitle">+ Титр</button></div>
       </div>
 
       <div class="panel">
@@ -141,7 +141,17 @@
 <script>
 (function(){
   const IMG = /\.(jpe?g|png|webp|gif|bmp|heic)$/i;
-  const state = {clips:[], texts:[{text:"Твой текст",start:0,end:2.5,y:0.78,size:86,color:"#ffffff"}], music:null};
+  const PRESETS = {
+    sub:    {label:"реплика",  y:0.72, size:86, upper:true,  op:0.95, box:false},
+    header: {label:"шапка",    y:0.12, size:52, upper:true,  op:0.6,  box:false, spacing:5},
+    brand:  {label:"бренд",    y:0.90, size:46, upper:true,  op:0.8,  box:false, spacing:7},
+    title:  {label:"титр",     y:0.30, size:106, upper:false, op:1,   box:true}
+  };
+  const mkText = (style, text, start, end) => {
+    const p = PRESETS[style];
+    return {style, text, start, end, y:p.y, size:p.size, color:"#ffffff"};
+  };
+  const state = {clips:[], texts:[mkText("sub","Твоя реплика",0,2.5)], music:null};
   const $ = s => document.querySelector(s);
   const vid = $("#vid"), pic = $("#pic"), cap = $("#cap"), capText = $("#capText");
   const scrub = $("#scrub"), clock = $("#clock"), playBtn = $("#play");
@@ -225,6 +235,7 @@
           <button class="icon" data-act="del" title="Удалить">✕</button>
         </div>
         <div class="row">
+          <label class="field">Роль<select data-k="style">${Object.entries(PRESETS).map(([k,p])=>`<option value="${k}"${x.style===k?" selected":""}>${p.label}</option>`).join("")}</select></label>
           <label class="field">С, с<input type="number" step="0.1" min="0" value="${x.start}" data-k="start"></label>
           <label class="field">По, с<input type="number" step="0.1" min="0" value="${x.end}" data-k="end"></label>
           <label class="field">Высота<input type="number" step="0.02" min="0" max="1" value="${x.y}" data-k="y"></label>
@@ -233,7 +244,8 @@
         </div>`;
       el.querySelectorAll("[data-k]").forEach(inp => inp.oninput = e => {
         const k = e.target.dataset.k;
-        x[k] = (k === "text" || k === "color") ? e.target.value : parseFloat(e.target.value)||0;
+        if(k === "style"){ const p = PRESETS[e.target.value]; x.style = e.target.value; x.y = p.y; x.size = p.size; }
+        else x[k] = (k === "text" || k === "color") ? e.target.value : parseFloat(e.target.value)||0;
         if(k !== "text") render(); else paint(t);
       });
       el.querySelector("[data-act]").onclick = () => { state.texts.splice(i,1); render(); };
@@ -280,10 +292,15 @@
       if(idx !== curIdx){ curIdx = idx; renderStrip(); }
     } else { vid.hidden = true; pic.hidden = true; }
 
-    const shown = state.texts.find(x => time >= x.start && time <= x.end);
+    const layers = state.texts.filter(x => time >= x.start && time <= x.end);
+    const shown = layers.find(x => x.style === "sub") || layers[0];
     cap.hidden = !shown;
     if(shown){
-      capText.textContent = shown.text;
+      const p = PRESETS[shown.style] || PRESETS.title;
+      capText.textContent = p.upper ? shown.text.toLocaleUpperCase("ru") : shown.text;
+      capText.style.background = p.box ? "rgba(0,0,0,.55)" : "transparent";
+      cap.style.opacity = p.op;
+      cap.style.letterSpacing = (p.spacing ? p.spacing/12 : 0) + "em";
       cap.style.top = (shown.y * 100) + "%";
       cap.style.color = shown.color;
       cap.style.fontSize = "clamp(11px," + (shown.size / 1920 * 100) + "vh,64px)";
@@ -321,11 +338,16 @@
       $("#musicLine").innerHTML = `Музыка: <code>${f.name}</code> — фоном, громкость 22%.`; }
     e.target.value = ""; render();
   };
-  $("#addText").onclick = () => {
+  const addAt = (style, text, span) => {
     const at = Math.round(t*10)/10;
-    state.texts.push({text:"Новая подпись", start:at, end:at+2.5, y:0.78, size:86, color:"#ffffff"});
+    const whole = style === "header" || style === "brand";
+    state.texts.push(mkText(style, text, whole ? 0 : at, whole ? Math.max(total(),1) : at + span));
     render();
   };
+  $("#addText").onclick = () => addAt("sub", "Новая реплика", 2.5);
+  $("#addHeader").onclick = () => addAt("header", "Рубрика | тема", 0);
+  $("#addBrand").onclick = () => addAt("brand", "Название бренда", 0);
+  $("#addTitle").onclick = () => addAt("title", "Крупный титр", 2.5);
 
   function plan(){
     return {
@@ -334,8 +356,9 @@
         ? {src:c.name, duration:+fmt(c.duration), zoom:c.zoom||undefined, fade:c.fade||undefined}
         : {src:c.name, start:+fmt(c.start), end:+fmt(c.end),
            speed:c.speed!==1?c.speed:undefined, fade:c.fade||undefined, mute:c.mute||undefined}),
-      texts: state.texts.map(x => ({text:x.text, start:+fmt(x.start), end:+fmt(x.end),
-                                    y:+x.y.toFixed(2), size:Math.round(x.size), color:x.color})),
+      texts: state.texts.map(x => ({style:x.style, text:x.text, start:+fmt(x.start),
+                                    end:+fmt((x.style==="header"||x.style==="brand") ? total() : x.end), y:+x.y.toFixed(2),
+                                    size:Math.round(x.size), color:x.color})),
       music: state.music ? {src:state.music.name, volume:state.music.volume, fade_out:1.5} : undefined
     };
   }

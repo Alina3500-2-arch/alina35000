@@ -48,6 +48,32 @@ def ts(seconds):
     return f"{int(h)}:{int(m):02d}:{sec:05.2f}"
 
 
+#: Готовые стили подписей. Поля в самой подписи перекрывают стиль.
+STYLES = {
+    # Реплики спикера: крупный капс по центру-низу, без плашки, тонкая обводка.
+    "sub": {"y": 0.72, "size_rel": 0.045, "uppercase": True, "box": False,
+            "opacity": 0.95, "spacing": 1, "text_fade": 0.1},
+    # Шапка ролика: держится весь ролик, полупрозрачная, с разрядкой.
+    "header": {"y": 0.12, "size_rel": 0.027, "uppercase": True, "box": False,
+               "opacity": 0.6, "spacing": 5, "text_fade": 0.3},
+    # Подпись бренда внизу.
+    "brand": {"y": 0.9, "size_rel": 0.024, "uppercase": True, "box": False,
+              "opacity": 0.8, "spacing": 7, "text_fade": 0.3},
+    # Крупный титр с плашкой — для хука в начале и призыва в конце.
+    "title": {"y": 0.3, "size_rel": 0.055, "box": True, "box_opacity": 0.5,
+              "opacity": 1, "text_fade": 0.25},
+}
+
+
+def styled(t, h):
+    """Подпись + её стиль: значения из самой подписи всегда главнее."""
+    base = dict(STYLES.get(t.get("style", "title"), STYLES["title"]))
+    base.update({k: v for k, v in t.items() if v is not None})
+    base.setdefault("size", round(h * float(base.pop("size_rel", 0.045))))
+    base.pop("size_rel", None)
+    return base
+
+
 def write_ass(texts, w, h, total, path):
     """Собирает файл субтитров с плашками (libass)."""
     head = [
@@ -62,26 +88,32 @@ def write_ass(texts, w, h, total, path):
     events = ["", "[Events]",
               "Format: Layer, Start, End, Style, Name, MarginL, MarginR,"
               " MarginV, Effect, Text"]
-    for j, t in enumerate(texts):
-        size = int(t.get("size", round(h * 0.045)))
-        border = 3 if t.get("box", True) else 1
+    for j, raw in enumerate(texts):
+        t = styled(raw, h)
+        size = int(t["size"])
+        boxed = t.get("box", True)
+        border = 3 if boxed else 1
         back = ass_color(t.get("box_color", "#000000"),
                          alpha=int((1 - float(t.get("box_opacity", 0.55))) * 255))
+        alpha = int((1 - float(t.get("opacity", 1))) * 255)
+        outline = max(size // 18, 3) if boxed else max(size // 26, 2)
         head.append(
             f"Style: s{j},{t.get('font', FONT)},{size},"
-            f"{ass_color(t.get('color', 'white'))},{ass_color('white')},"
-            f"{ass_color(t.get('outline_color', '#000000'))},{back},"
-            f"{-1 if t.get('bold', True) else 0},0,0,0,100,100,0,0,"
-            f"{border},{max(size // 18, 3)},0,5,40,40,40,1")
+            f"{ass_color(t.get('color', 'white'), alpha)},{ass_color('white')},"
+            f"{ass_color(t.get('outline_color', '#000000'), min(alpha + 40, 255))},{back},"
+            f"{-1 if t.get('bold', True) else 0},0,0,0,100,100,"
+            f"{float(t.get('spacing', 0)):.1f},0,"
+            f"{border},{outline},0,5,40,40,40,1")
         y = float(t.get("y", 0.75))
         x = float(t.get("x", 0.5))
         fade = float(t.get("text_fade", 0.25) or 0)
         tags = f"\\pos({x * w:.0f},{y * h:.0f})"
         if fade > 0:
             tags += f"\\fad({int(fade * 1000)},{int(fade * 1000)})"
+        body = t["text"].upper() if t.get("uppercase") else t["text"]
         events.append(
             f"Dialogue: 0,{ts(t.get('start', 0))},{ts(t.get('end', total))},"
-            f"s{j},,0,0,0,,{{{tags}}}{esc(t['text'])}")
+            f"s{j},,0,0,0,,{{{tags}}}{esc(body)}")
     with open(path, "w", encoding="utf-8") as fh:
         fh.write("\n".join(head + events) + "\n")
     return path
@@ -122,7 +154,11 @@ def build(plan, base):
             inputs += args + ["-i", src]
 
         v = f"v{i}"
-        f = (f"[{i}:v]scale={w}:{h}:force_original_aspect_ratio=increase,"
+        pre = ""
+        if c.get("crop"):  # [x, y, ширина, высота] в долях кадра
+            cx, cy, cw, ch = [float(n) for n in c["crop"]]
+            pre = (f"crop=iw*{cw:.4f}:ih*{ch:.4f}:iw*{cx:.4f}:ih*{cy:.4f},")
+        f = (f"[{i}:v]{pre}scale={w}:{h}:force_original_aspect_ratio=increase,"
              f"crop={w}:{h},fps={fps},setsar=1,format=yuv420p")
         if speed != 1:
             f += f",setpts={1/speed:.6f}*PTS"
@@ -131,7 +167,7 @@ def build(plan, base):
             step = 0.18 / frames  # медленный наезд/отъезд на 18%% за клип
             zexpr = (f"1+{step:.6f}*on" if c["zoom"] == "in"
                      else f"1.18-{step:.6f}*on")
-            f = (f"[{i}:v]fps={fps},scale={w*2}:{h*2}:"
+            f = (f"[{i}:v]{pre}fps={fps},scale={w*2}:{h*2}:"
                  f"force_original_aspect_ratio=increase,crop={w*2}:{h*2},"
                  f"zoompan=z='{zexpr}':d=1:x='iw/2-(iw/zoom/2)':"
                  f"y='ih/2-(ih/zoom/2)':s={w}x{h}:fps={fps},"
