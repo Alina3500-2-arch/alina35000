@@ -1,0 +1,375 @@
+<title>Монтажный стол</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700&family=Unbounded:wght@600;800&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --ground:#f6f2ee; --surface:#fffdfb; --surface-2:#efe8e1; --line:#ddd2c7;
+    --ink:#241f1b; --muted:#7a6f66; --accent:#c25a2b; --accent-soft:#f3d9c8;
+    --tape:#3f6f6a; --tape-soft:#d6e6e3;
+    --radius:10px; --mono:"JetBrains Mono",ui-monospace,monospace;
+  }
+  @media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
+    --ground:#191512; --surface:#231d19; --surface-2:#2d2621; --line:#3b322c;
+    --ink:#f2ebe4; --muted:#a2958a; --accent:#ef8a53; --accent-soft:#4a2c1c;
+    --tape:#6fbdb2; --tape-soft:#1e3936;
+  }}
+  :root[data-theme="dark"]{
+    --ground:#191512; --surface:#231d19; --surface-2:#2d2621; --line:#3b322c;
+    --ink:#f2ebe4; --muted:#a2958a; --accent:#ef8a53; --accent-soft:#4a2c1c;
+    --tape:#6fbdb2; --tape-soft:#1e3936;
+  }
+  *{box-sizing:border-box}
+  body{background:var(--ground);color:var(--ink);font-family:"Manrope",system-ui,sans-serif;
+       font-size:15px;line-height:1.5;padding:0 16px;padding-block:20px 48px;margin:0}
+  .wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+  header{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 14px}
+  h1{font-family:"Unbounded",system-ui,sans-serif;font-weight:800;font-size:clamp(24px,4vw,34px);
+     margin:0;letter-spacing:-.02em;text-wrap:balance}
+  .sub{color:var(--muted);max-width:62ch;margin:0}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+  .stage{display:grid;grid-template-columns:minmax(260px,340px) 1fr;gap:20px;align-items:start}
+  @media (max-width:820px){.stage{grid-template-columns:1fr}}
+  .player{position:relative;aspect-ratio:9/16;max-width:100%;background:#000;border-radius:var(--radius);
+          overflow:hidden;border:1px solid var(--line)}
+  .player video,.player img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+  .player .empty{position:absolute;inset:0;display:grid;place-items:center;color:#8d8177;
+          font-family:var(--mono);font-size:12px;text-align:center;padding:0 24px}
+  .cap{position:absolute;left:6%;right:6%;transform:translateY(-50%);text-align:center;
+       font-weight:700;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.6);pointer-events:none;
+       white-space:pre-wrap;line-height:1.2}
+  .cap span{background:rgba(0,0,0,.55);padding:.12em .35em;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+  .transport{display:flex;align-items:center;gap:10px;margin-top:10px}
+  .transport input[type=range]{flex:1;accent-color:var(--accent)}
+  .time{font-family:var(--mono);font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px}
+  .panel + .panel{margin-top:14px}
+  .panel h2{font-family:"Unbounded",sans-serif;font-size:13px;font-weight:600;margin:0 0 10px;
+            letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+  button{font:inherit;font-weight:500;border-radius:8px;border:1px solid var(--line);
+         background:var(--surface-2);color:var(--ink);padding:7px 12px;cursor:pointer}
+  button:hover{border-color:var(--accent)}
+  button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  button.icon{padding:4px 8px;font-family:var(--mono);font-size:12px}
+  .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  input[type=text],input[type=number],select,textarea{font:inherit;background:var(--ground);color:var(--ink);
+       border:1px solid var(--line);border-radius:7px;padding:6px 8px;max-width:100%}
+  input[type=number]{width:78px;font-family:var(--mono);font-variant-numeric:tabular-nums}
+  input[type=color]{width:38px;height:32px;padding:0;border:1px solid var(--line);border-radius:7px;background:none}
+  label.field{display:inline-flex;flex-direction:column;gap:3px;font-size:11px;color:var(--muted);
+       letter-spacing:.04em;text-transform:uppercase}
+  .item{border:1px solid var(--line);border-radius:var(--radius);padding:10px 12px;background:var(--surface-2)}
+  .item + .item{margin-top:8px}
+  .item.text-item{background:var(--tape-soft);border-color:var(--tape)}
+  .item-head{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .item-name{font-weight:700;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .badge{font-family:var(--mono);font-size:11px;color:var(--muted);flex:none}
+  .strip{display:flex;gap:3px;height:36px;border-radius:7px;overflow:hidden;border:1px solid var(--line);margin-top:4px}
+  .strip div{background:var(--accent-soft);display:grid;place-items:center;font-family:var(--mono);
+       font-size:10px;color:var(--ink);overflow:hidden;min-width:0}
+  .strip div.active{background:var(--accent);color:#fff}
+  .empty-note{color:var(--muted);font-size:13px;margin:0}
+  textarea#plan{width:100%;min-height:180px;font-family:var(--mono);font-size:12px;line-height:1.45}
+  .hint{color:var(--muted);font-size:13px}
+  .hint code{font-family:var(--mono);font-size:12px;background:var(--surface-2);padding:1px 5px;border-radius:5px}
+  ol.steps{margin:0;padding-left:20px;color:var(--muted);font-size:13px}
+  ol.steps li{margin-bottom:4px}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <p class="eyebrow">9:16 · вертикальный монтаж</p>
+      <h1>Монтажный стол</h1>
+    </div>
+  </header>
+  <p class="sub">Кидаешь файлы, режешь, ставишь подписи и музыку, смотришь превью — потом жмёшь «Скопировать план» и присылаешь его мне в чат. Я рендерю финальный mp4 через ffmpeg.</p>
+
+  <div class="stage">
+    <div>
+      <div class="player" id="player">
+        <video id="vid" playsinline muted></video>
+        <img id="pic" alt="" hidden>
+        <div class="empty" id="emptyNote">Добавь видео или фото —<br>здесь появится превью 1080×1920</div>
+        <div class="cap" id="cap" hidden><span id="capText"></span></div>
+      </div>
+      <div class="transport">
+        <button id="play" class="primary">▶ Играть</button>
+        <input type="range" id="scrub" min="0" max="0" step="0.05" value="0" aria-label="Позиция на таймлайне">
+        <span class="time" id="clock">0.0 / 0.0 с</span>
+      </div>
+      <div class="strip" id="strip" aria-hidden="true"></div>
+    </div>
+
+    <div>
+      <div class="panel">
+        <h2>Материал</h2>
+        <div class="row">
+          <button id="pick" class="primary">+ Видео и фото</button>
+          <button id="pickAudio">+ Музыка</button>
+          <input type="file" id="files" accept="video/*,image/*" multiple hidden>
+          <input type="file" id="audio" accept="audio/*" hidden>
+        </div>
+        <p class="hint" id="musicLine" hidden></p>
+      </div>
+
+      <div class="panel">
+        <h2>Клипы</h2>
+        <div id="clips"><p class="empty-note">Пока пусто. Файлы читаются прямо в браузере, никуда не грузятся.</p></div>
+      </div>
+
+      <div class="panel">
+        <h2>Подписи</h2>
+        <div id="texts"></div>
+        <div class="row" style="margin-top:8px"><button id="addText">+ Реплика</button><button id="addHeader">+ Шапка</button><button id="addBrand">+ Бренд</button><button id="addTitle">+ Титр</button></div>
+      </div>
+
+      <div class="panel">
+        <h2>План монтажа</h2>
+        <ol class="steps">
+          <li>Скинь мне исходники (Google Drive или прямо в чат).</li>
+          <li>Нажми «Обновить план» и скопируй JSON.</li>
+          <li>Пришли его мне — я отдам готовый mp4.</li>
+        </ol>
+        <div class="row" style="margin:10px 0"><button id="build" class="primary">Обновить план</button><button id="copy">Скопировать план</button><span class="hint" id="copyNote"></span></div>
+        <textarea id="plan" spellcheck="false" aria-label="План монтажа в формате JSON"></textarea>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const IMG = /\.(jpe?g|png|webp|gif|bmp|heic)$/i;
+  const PRESETS = {
+    sub:    {label:"реплика",  y:0.72, size:86, upper:true,  op:0.95, box:false},
+    header: {label:"шапка",    y:0.12, size:52, upper:true,  op:0.6,  box:false, spacing:5},
+    brand:  {label:"бренд",    y:0.90, size:46, upper:true,  op:0.8,  box:false, spacing:7},
+    title:  {label:"титр",     y:0.30, size:106, upper:false, op:1,   box:true}
+  };
+  const mkText = (style, text, start, end) => {
+    const p = PRESETS[style];
+    return {style, text, start, end, y:p.y, size:p.size, color:"#ffffff"};
+  };
+  const state = {clips:[], texts:[mkText("sub","Твоя реплика",0,2.5)], music:null};
+  const $ = s => document.querySelector(s);
+  const vid = $("#vid"), pic = $("#pic"), cap = $("#cap"), capText = $("#capText");
+  const scrub = $("#scrub"), clock = $("#clock"), playBtn = $("#play");
+  let playing = false, t = 0, last = 0, curIdx = -1;
+
+  const dur = c => c.kind === "image" ? c.duration : Math.max((c.end - c.start) / (c.speed||1), 0.05);
+  const total = () => state.clips.reduce((s,c) => s + dur(c), 0);
+  const fmt = n => n.toFixed(1);
+
+  function addFiles(list){
+    [...list].forEach(f => {
+      const isImg = f.type.startsWith("image/") || IMG.test(f.name);
+      const url = URL.createObjectURL(f);
+      const c = {name:f.name, url, kind:isImg?"image":"video", start:0, end:3, duration:3,
+                 speed:1, fade:0.25, zoom:isImg?"in":"", mute:false, raw:0};
+      state.clips.push(c);
+      if(!isImg){
+        const probe = document.createElement("video");
+        probe.preload = "metadata"; probe.src = url;
+        probe.onloadedmetadata = () => { c.raw = probe.duration; c.end = Math.min(probe.duration, 6); render(); };
+      }
+    });
+    render();
+  }
+
+  function renderClips(){
+    const box = $("#clips");
+    if(!state.clips.length){ box.innerHTML = '<p class="empty-note">Пока пусто. Файлы читаются прямо в браузере, никуда не грузятся.</p>'; return; }
+    box.innerHTML = "";
+    state.clips.forEach((c,i) => {
+      const el = document.createElement("div");
+      el.className = "item";
+      const isImg = c.kind === "image";
+      el.innerHTML = `
+        <div class="item-head">
+          <span class="item-name">${i+1}. ${c.name}</span>
+          <span class="badge">${fmt(dur(c))} с${c.raw?` / ${fmt(c.raw)}`:""}</span>
+        </div>
+        <div class="row">
+          ${isImg ? `
+            <label class="field">Длина<input type="number" step="0.1" min="0.3" value="${c.duration}" data-k="duration"></label>
+            <label class="field">Наезд<select data-k="zoom"><option value="in"${c.zoom==="in"?" selected":""}>в кадр</option><option value="out"${c.zoom==="out"?" selected":""}>из кадра</option><option value=""${!c.zoom?" selected":""}>без</option></select></label>
+          ` : `
+            <label class="field">От, с<input type="number" step="0.1" min="0" value="${fmt(c.start)}" data-k="start"></label>
+            <label class="field">До, с<input type="number" step="0.1" min="0" value="${fmt(c.end)}" data-k="end"></label>
+            <label class="field">Скорость<input type="number" step="0.25" min="0.5" max="2" value="${c.speed}" data-k="speed"></label>
+            <label class="field">Звук<select data-k="mute"><option value="0"${!c.mute?" selected":""}>оставить</option><option value="1"${c.mute?" selected":""}>убрать</option></select></label>
+          `}
+          <label class="field">Затемнение<input type="number" step="0.05" min="0" max="1" value="${c.fade}" data-k="fade"></label>
+          <span style="flex:1"></span>
+          <button class="icon" data-act="up" title="Выше">↑</button>
+          <button class="icon" data-act="down" title="Ниже">↓</button>
+          <button class="icon" data-act="del" title="Удалить">✕</button>
+        </div>`;
+      el.querySelectorAll("[data-k]").forEach(inp => inp.onchange = e => {
+        const k = e.target.dataset.k;
+        c[k] = k === "zoom" ? e.target.value : k === "mute" ? e.target.value === "1" : parseFloat(e.target.value)||0;
+        if(k === "end" && c.raw) c.end = Math.min(c.end, c.raw);
+        render();
+      });
+      el.querySelectorAll("[data-act]").forEach(b => b.onclick = () => {
+        const a = b.dataset.act;
+        if(a === "del") state.clips.splice(i,1);
+        if(a === "up" && i > 0) state.clips.splice(i-1, 0, state.clips.splice(i,1)[0]);
+        if(a === "down" && i < state.clips.length-1) state.clips.splice(i+1, 0, state.clips.splice(i,1)[0]);
+        curIdx = -1; render();
+      });
+      box.appendChild(el);
+    });
+  }
+
+  function renderTexts(){
+    const box = $("#texts");
+    box.innerHTML = state.texts.length ? "" : '<p class="empty-note">Без подписей.</p>';
+    state.texts.forEach((x,i) => {
+      const el = document.createElement("div");
+      el.className = "item text-item";
+      el.innerHTML = `
+        <div class="row" style="margin-bottom:8px">
+          <input type="text" value="${x.text.replace(/"/g,"&quot;")}" data-k="text" style="flex:1;min-width:140px" aria-label="Текст подписи">
+          <button class="icon" data-act="del" title="Удалить">✕</button>
+        </div>
+        <div class="row">
+          <label class="field">Роль<select data-k="style">${Object.entries(PRESETS).map(([k,p])=>`<option value="${k}"${x.style===k?" selected":""}>${p.label}</option>`).join("")}</select></label>
+          <label class="field">С, с<input type="number" step="0.1" min="0" value="${x.start}" data-k="start"></label>
+          <label class="field">По, с<input type="number" step="0.1" min="0" value="${x.end}" data-k="end"></label>
+          <label class="field">Высота<input type="number" step="0.02" min="0" max="1" value="${x.y}" data-k="y"></label>
+          <label class="field">Кегль<input type="number" step="2" min="20" value="${x.size}" data-k="size"></label>
+          <label class="field">Цвет<input type="color" value="${x.color}" data-k="color"></label>
+        </div>`;
+      el.querySelectorAll("[data-k]").forEach(inp => inp.oninput = e => {
+        const k = e.target.dataset.k;
+        if(k === "style"){ const p = PRESETS[e.target.value]; x.style = e.target.value; x.y = p.y; x.size = p.size; }
+        else x[k] = (k === "text" || k === "color") ? e.target.value : parseFloat(e.target.value)||0;
+        if(k !== "text") render(); else paint(t);
+      });
+      el.querySelector("[data-act]").onclick = () => { state.texts.splice(i,1); render(); };
+      box.appendChild(el);
+    });
+  }
+
+  function renderStrip(){
+    const strip = $("#strip"), tot = total();
+    strip.innerHTML = "";
+    state.clips.forEach((c,i) => {
+      const d = document.createElement("div");
+      d.style.flex = dur(c) / (tot||1);
+      d.textContent = i + 1;
+      if(i === curIdx) d.classList.add("active");
+      strip.appendChild(d);
+    });
+  }
+
+  function paint(time){
+    const tot = total();
+    let acc = 0, idx = -1, local = 0;
+    for(let i = 0; i < state.clips.length; i++){
+      const d = dur(state.clips[i]);
+      if(time < acc + d || i === state.clips.length-1){ idx = i; local = time - acc; break; }
+      acc += d;
+    }
+    const c = state.clips[idx];
+    $("#emptyNote").hidden = !!c;
+    if(c){
+      if(c.kind === "image"){
+        vid.hidden = true; vid.pause(); pic.hidden = false;
+        if(pic.getAttribute("src") !== c.url) pic.src = c.url;
+      } else {
+        pic.hidden = true; vid.hidden = false;
+        if(idx !== curIdx){ vid.src = c.url; vid.muted = true; }
+        const want = c.start + Math.max(local,0) * (c.speed||1);
+        if(Math.abs(vid.currentTime - want) > 0.28 || idx !== curIdx){
+          try { vid.currentTime = want; } catch(e){}
+        }
+        if(playing){ vid.playbackRate = Math.min(Math.max(c.speed||1, .25), 4); vid.play().catch(()=>{}); }
+        else vid.pause();
+      }
+      if(idx !== curIdx){ curIdx = idx; renderStrip(); }
+    } else { vid.hidden = true; pic.hidden = true; }
+
+    const layers = state.texts.filter(x => time >= x.start && time <= x.end);
+    const shown = layers.find(x => x.style === "sub") || layers[0];
+    cap.hidden = !shown;
+    if(shown){
+      const p = PRESETS[shown.style] || PRESETS.title;
+      capText.textContent = p.upper ? shown.text.toLocaleUpperCase("ru") : shown.text;
+      capText.style.background = p.box ? "rgba(0,0,0,.55)" : "transparent";
+      cap.style.opacity = p.op;
+      cap.style.letterSpacing = (p.spacing ? p.spacing/12 : 0) + "em";
+      cap.style.top = (shown.y * 100) + "%";
+      cap.style.color = shown.color;
+      cap.style.fontSize = "clamp(11px," + (shown.size / 1920 * 100) + "vh,64px)";
+    }
+    scrub.max = Math.max(tot, 0.1);
+    scrub.value = Math.min(time, tot);
+    clock.textContent = `${fmt(time)} / ${fmt(tot)} с`;
+  }
+
+  function loop(ts){
+    if(!playing) return;
+    const dt = last ? (ts - last)/1000 : 0; last = ts;
+    t += dt;
+    if(t >= total()){ t = 0; stop(); paint(0); return; }
+    paint(t);
+    requestAnimationFrame(loop);
+  }
+  function stop(){ playing = false; last = 0; playBtn.textContent = "▶ Играть"; vid.pause(); }
+
+  playBtn.onclick = () => {
+    if(!state.clips.length) return;
+    playing = !playing;
+    playBtn.textContent = playing ? "❚❚ Пауза" : "▶ Играть";
+    if(playing){ last = 0; requestAnimationFrame(loop); } else vid.pause();
+  };
+  scrub.oninput = e => { t = parseFloat(e.target.value); curIdx = -1; paint(t); };
+
+  $("#pick").onclick = () => $("#files").click();
+  $("#files").onchange = e => { addFiles(e.target.files); e.target.value = ""; };
+  $("#pickAudio").onclick = () => $("#audio").click();
+  $("#audio").onchange = e => {
+    const f = e.target.files[0];
+    if(f){ state.music = {name:f.name, volume:0.22};
+      $("#musicLine").hidden = false;
+      $("#musicLine").innerHTML = `Музыка: <code>${f.name}</code> — фоном, громкость 22%.`; }
+    e.target.value = ""; render();
+  };
+  const addAt = (style, text, span) => {
+    const at = Math.round(t*10)/10;
+    const whole = style === "header" || style === "brand";
+    state.texts.push(mkText(style, text, whole ? 0 : at, whole ? Math.max(total(),1) : at + span));
+    render();
+  };
+  $("#addText").onclick = () => addAt("sub", "Новая реплика", 2.5);
+  $("#addHeader").onclick = () => addAt("header", "Рубрика | тема", 0);
+  $("#addBrand").onclick = () => addAt("brand", "Название бренда", 0);
+  $("#addTitle").onclick = () => addAt("title", "Крупный титр", 2.5);
+
+  function plan(){
+    return {
+      output: "final.mp4", width: 1080, height: 1920, fps: 30, keep_audio: true,
+      clips: state.clips.map(c => c.kind === "image"
+        ? {src:c.name, duration:+fmt(c.duration), zoom:c.zoom||undefined, fade:c.fade||undefined}
+        : {src:c.name, start:+fmt(c.start), end:+fmt(c.end),
+           speed:c.speed!==1?c.speed:undefined, fade:c.fade||undefined, mute:c.mute||undefined}),
+      texts: state.texts.map(x => ({style:x.style, text:x.text, start:+fmt(x.start),
+                                    end:+fmt((x.style==="header"||x.style==="brand") ? total() : x.end), y:+x.y.toFixed(2),
+                                    size:Math.round(x.size), color:x.color})),
+      music: state.music ? {src:state.music.name, volume:state.music.volume, fade_out:1.5} : undefined
+    };
+  }
+  $("#build").onclick = () => { $("#plan").value = JSON.stringify(plan(), null, 2); $("#copyNote").textContent = ""; };
+  $("#copy").onclick = async () => {
+    if(!$("#plan").value) $("#plan").value = JSON.stringify(plan(), null, 2);
+    try { await navigator.clipboard.writeText($("#plan").value); $("#copyNote").textContent = "Скопировано — вставляй в чат."; }
+    catch(e){ $("#plan").select(); $("#copyNote").textContent = "Выделено — нажми Ctrl+C."; }
+  };
+
+  function render(){ renderClips(); renderTexts(); renderStrip(); paint(Math.min(t, total())); }
+  render();
+})();
+</script>

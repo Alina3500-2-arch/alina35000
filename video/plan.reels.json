@@ -1,0 +1,18 @@
+{
+  "output": "reels.mp4",
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "clips": [
+    { "src": "raw/talk.mp4", "start": 0.2, "end": 4.2, "fade": 0.15 },
+    { "src": "raw/talk.mp4", "start": 5.5, "end": 9.0, "fade": 0.15 },
+    { "src": "raw/talk.mp4", "start": 10.0, "end": 13.1, "fade": 0.15 }
+  ],
+  "texts": [
+    { "style": "header", "text": "кейтеринг | юбилей" },
+    { "style": "brand", "text": "boutique gourmet" },
+    { "style": "sub", "text": "Как проходит\nкараоке-батл", "start": 0.3, "end": 3.8 },
+    { "style": "sub", "text": "Традиционно это\nхолодные закуски", "start": 4.2, "end": 7.4 },
+    { "style": "sub", "text": "В честь дня рождения", "start": 7.8, "end": 10.5 }
+  ]
+}

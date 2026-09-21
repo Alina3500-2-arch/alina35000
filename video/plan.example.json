@@ -1,0 +1,17 @@
+{
+  "output": "final.mp4",
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "keep_audio": true,
+  "clips": [
+    { "src": "raw/hook.mp4", "start": 2.0, "end": 5.5, "fade": 0.25 },
+    { "src": "raw/photo.jpg", "duration": 2.5, "zoom": "in" },
+    { "src": "raw/final.mp4", "start": 0, "end": 4, "speed": 1.25, "mute": true }
+  ],
+  "texts": [
+    { "text": "3 вещи, которые я поняла", "start": 0, "end": 3.5, "y": 0.2, "size": 86, "color": "#ffffff" },
+    { "text": "сохрани, чтобы не потерять", "start": 6.0, "end": 9.5, "y": 0.8, "size": 64, "color": "#ffd400" }
+  ],
+  "music": { "src": "raw/track.mp3", "volume": 0.22, "fade_out": 1.5 }
+}
